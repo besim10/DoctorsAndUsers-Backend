@@ -98,6 +98,40 @@ app.post("/events", async (req, res) => {
     res.status(400).send({ error: err.message });
   }
 });
+app.delete("/events/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const token = req.headers.authorization;
+
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id },
+    });
+
+    if (event && token) {
+      const event = await prisma.event.delete({
+        where: { id },
+      });
+      const updatedUser = await getUserFromToken(token as string);
+      const updatedDoctor = await prisma.user.findUnique({
+        where: { id: event.doctorId },
+        include: { recivedEvents: true },
+      });
+
+      res.send({
+        msg: "Appointmentent deleted succesfully",
+        updatedUser,
+        updatedDoctor,
+      });
+    } else {
+      throw Error(
+        "You are not authorized or appointment with this Id doesnt exist!"
+      );
+    }
+  } catch (err) {
+    //@ts-ignore
+    res.status(400).send({ error: err.message });
+  }
+});
 app.get("/users", async (req, res) => {
   try {
     const users = await prisma.user.findMany({

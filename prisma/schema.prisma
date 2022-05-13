@@ -28,4 +28,5 @@ model Event {
   userId Int
   doctor User @relation("doctor", fields: [doctorId], references: [id])
   doctorId Int
+  status String @default(dbgenerated("pending"))
 }
