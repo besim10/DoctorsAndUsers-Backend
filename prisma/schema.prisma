@@ -16,4 +16,16 @@ model User {
   email      String   @unique
   password   String
   isDoctor Boolean
+  postedEvents Event[] @relation("normalUser")
+  recivedEvents Event[]@relation("doctor")
+}
+model Event {
+  id Int @id @default(autoincrement())
+  title String
+  start String
+  end String
+  normalUser User @relation("normalUser", fields: [userId], references: [id])
+  userId Int
+  doctor User @relation("doctor", fields: [doctorId], references: [id])
+  doctorId Int
 }
