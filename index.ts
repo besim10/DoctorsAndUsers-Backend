@@ -27,7 +27,7 @@ async function getUserFromToken(token: string) {
     where: { id: data.id },
     include: {
       postedEvents: { include: { doctor: true } },
-      recivedEvents: true,
+      recivedEvents: { include: { normalUser: true } },
     },
   });
   return user;
@@ -118,13 +118,40 @@ app.delete("/events/:id", async (req, res) => {
       });
 
       res.send({
-        msg: "Appointmentent deleted succesfully",
+        msg: "Event deleted succesfully",
         updatedUser,
         updatedDoctor,
       });
     } else {
       throw Error(
-        "You are not authorized or appointment with this Id doesnt exist!"
+        "You are not authorized, or Event with this Id doesnt exist!"
+      );
+    }
+  } catch (err) {
+    //@ts-ignore
+    res.status(400).send({ error: err.message });
+  }
+});
+app.put("/events/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const token = req.headers.authorization;
+  const { status } = req.body;
+
+  try {
+    const event = await prisma.event.findUnique({ where: { id } });
+
+    if (event && token) {
+      const updatedEvent = await prisma.event.update({
+        where: { id },
+        data: { status },
+        include: { doctor: true, normalUser: true },
+      });
+      const updatedUser = await getUserFromToken(token as string);
+
+      res.send({ updatedEvent, updatedUser });
+    } else {
+      throw Error(
+        "You are not authorized, or Event with this Id doesnt exist!"
       );
     }
   } catch (err) {

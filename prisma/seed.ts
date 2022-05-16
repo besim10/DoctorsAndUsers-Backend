@@ -30,31 +30,31 @@ const users: Prisma.UserCreateInput[] = [
 ];
 const events: Prisma.EventCreateInput[] = [
   {
-    title: "Visit me please!",
-    start: "2022-05-14T10:00:00",
-    end: "2022-05-14T16:00:00",
+    title: "Besim wants to visit Nico",
+    start: "2022-05-20T10:00:00",
+    end: "2022-05-20T16:00:00",
     doctor: { connect: { email: "nicolas@gmail.com" } },
     normalUser: { connect: { email: "besim@gmail.com" } },
   },
   {
-    title: "Visit me AGIN!",
-    start: "2022-05-16T10:00:00",
-    end: "2022-05-16T16:00:00",
+    title: "Besim wants to visit Ed",
+    start: "2022-05-19T10:00:00",
+    end: "2022-05-19T11:00:00",
     doctor: { connect: { email: "ed@gmail.com" } },
     normalUser: { connect: { email: "besim@gmail.com" } },
   },
   {
-    title: "Visit me AGIN AGIN!",
-    start: "2022-05-15T10:00:00",
-    end: "2022-05-15T16:00:00",
+    title: "Besim wants to visit Nico 2",
+    start: "2022-05-20T13:00:00",
+    end: "2022-05-20T16:00:00",
     doctor: { connect: { email: "nicolas@gmail.com" } },
     normalUser: { connect: { email: "besim@gmail.com" } },
   },
 
   {
-    title: "Grigor want to visit Ed",
-    start: "2022-05-15T10:00:00",
-    end: "2022-05-15T16:00:00",
+    title: "Grigor wants to visit Ed",
+    start: "2022-05-20T10:00:00",
+    end: "2022-05-20T16:00:00",
     doctor: { connect: { email: "ed@gmail.com" } },
     normalUser: { connect: { email: "grigor@gmail.com" } },
   },

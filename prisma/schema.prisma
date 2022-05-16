@@ -24,8 +24,8 @@ model Event {
   title String
   start String
   end String
-  normalUser User @relation("normalUser", fields: [userId], references: [id])
-  userId Int
+  normalUser User? @relation("normalUser", fields: [userId], references: [id])
+  userId Int?
   doctor User @relation("doctor", fields: [doctorId], references: [id])
   doctorId Int
   status String @default(dbgenerated("pending"))
