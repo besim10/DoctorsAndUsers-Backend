@@ -3,6 +3,7 @@ import cors from "cors";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
+import e from "express";
 
 const prisma = new PrismaClient();
 
@@ -28,6 +29,7 @@ async function getUserFromToken(token: string) {
     include: {
       postedEvents: { include: { doctor: true } },
       recivedEvents: { include: { normalUser: true } },
+      doctorPostedEvents: { include: { doctorPosted: true } },
     },
   });
   return user;
@@ -69,7 +71,7 @@ app.get("/authentication/validate-token", async (req, res) => {
 app.get("/events", async (req, res) => {
   try {
     const events = await prisma.event.findMany({
-      include: { normalUser: true, doctor: true },
+      include: { normalUser: true, doctor: true, doctorPosted: true },
     });
 
     res.send(events);
@@ -80,17 +82,26 @@ app.get("/events", async (req, res) => {
 });
 
 app.post("/events", async (req, res) => {
-  const { title, start, end, userId, doctorId } = req.body;
+  const { title, start, end, userId, doctorId, doctorPostedId } = req.body;
   const token = req.headers.authorization;
   try {
     await prisma.event.create({
-      data: { title, start, end, userId, doctorId },
+      data: { title, start, end, userId, doctorId, doctorPostedId },
     });
     const user = await getUserFromToken(token as string);
-    const updatedDoctor = await prisma.user.findUnique({
-      where: { id: doctorId },
-      include: { recivedEvents: true },
-    });
+
+    let updatedDoctor;
+    if (doctorPostedId) {
+      updatedDoctor = await prisma.user.findUnique({
+        where: { id: doctorPostedId },
+        include: { doctorPostedEvents: true },
+      });
+    } else {
+      updatedDoctor = await prisma.user.findUnique({
+        where: { id: doctorId },
+        include: { recivedEvents: true, doctorPostedEvents: true },
+      });
+    }
     if (user && updatedDoctor) {
       res.send({ updatedUser: user, updatedDoctor });
     }
@@ -112,11 +123,21 @@ app.delete("/events/:id", async (req, res) => {
         where: { id },
       });
       const updatedUser = await getUserFromToken(token as string);
-      const updatedDoctor = await prisma.user.findUnique({
-        where: { id: event.doctorId },
-        include: { recivedEvents: true },
-      });
 
+      let updatedDoctor;
+      if (event.doctorPostedId) {
+        updatedDoctor = await prisma.user.findUnique({
+          //@ts-ignore
+          where: { id: event.doctorPostedId },
+          include: { doctorPostedEvents: true },
+        });
+      } else {
+        updatedDoctor = await prisma.user.findUnique({
+          //@ts-ignore
+          where: { id: event.doctorId },
+          include: { recivedEvents: true, doctorPostedEvents: true },
+        });
+      }
       res.send({
         msg: "Event deleted succesfully",
         updatedUser,
@@ -144,7 +165,7 @@ app.put("/events/:id", async (req, res) => {
       const updatedEvent = await prisma.event.update({
         where: { id },
         data: { status },
-        include: { doctor: true, normalUser: true },
+        include: { doctor: true, normalUser: true, doctorPosted: true },
       });
       const updatedUser = await getUserFromToken(token as string);
 
@@ -162,7 +183,11 @@ app.put("/events/:id", async (req, res) => {
 app.get("/users", async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      include: { postedEvents: true, recivedEvents: true },
+      include: {
+        postedEvents: true,
+        recivedEvents: true,
+        doctorPostedEvents: true,
+      },
     });
     res.send(users);
   } catch (err) {
@@ -175,7 +200,7 @@ app.get("/doctors", async (req, res) => {
   try {
     const doctors = await prisma.user.findMany({
       where: { isDoctor: true },
-      include: { recivedEvents: true },
+      include: { recivedEvents: true, doctorPostedEvents: true },
     });
     res.send(doctors);
   } catch (err) {

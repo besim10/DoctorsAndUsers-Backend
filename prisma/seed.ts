@@ -50,13 +50,23 @@ const events: Prisma.EventCreateInput[] = [
     doctor: { connect: { email: "nicolas@gmail.com" } },
     normalUser: { connect: { email: "besim@gmail.com" } },
   },
-
   {
-    title: "Grigor wants to visit Ed",
-    start: "2022-05-20T10:00:00",
-    end: "2022-05-20T16:00:00",
-    doctor: { connect: { email: "ed@gmail.com" } },
-    normalUser: { connect: { email: "grigor@gmail.com" } },
+    title: "Ed free time to visit me",
+    start: "2022-05-27T10:00:00",
+    end: "2022-05-27T12:00:00",
+    doctorPosted: { connect: { email: "ed@gmail.com" } },
+  },
+  {
+    title: "Nico free time to visit",
+    start: "2022-05-31T10:00:00",
+    end: "2022-05-31T16:00:00",
+    doctorPosted: { connect: { email: "nicolas@gmail.com" } },
+  },
+  {
+    title: "Ed free time to visit 2",
+    start: "2022-05-25T08:00:00",
+    end: "2022-05-25T11:00:00",
+    doctorPosted: { connect: { email: "ed@gmail.com" } },
   },
 ];
 async function createStuff() {
