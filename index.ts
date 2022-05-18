@@ -55,7 +55,30 @@ app.post("/authentication/login", async (req, res) => {
     res.status(400).send({ error: err.message });
   }
 });
+app.post("/authentication/register", async (req, res) => {
+  const { fullName, email, password, isDoctor } = req.body;
 
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    //@ts-ignore
+    if (!user) {
+      const newUser = await prisma.user.create({
+        data: {
+          fullName,
+          email,
+          password: bcrypt.hashSync(password),
+          isDoctor,
+        },
+      });
+      res.send({ token: createToken(newUser.id) });
+    } else {
+      throw Error("User with this email address already exists!");
+    }
+  } catch (err) {
+    //@ts-ignore
+    res.status(400).send({ error: err.message });
+  }
+});
 app.get("/authentication/validate-token", async (req, res) => {
   const token = req.query.token;
 
@@ -156,7 +179,7 @@ app.delete("/events/:id", async (req, res) => {
 app.put("/events/:id", async (req, res) => {
   const id = Number(req.params.id);
   const token = req.headers.authorization;
-  const { status } = req.body;
+  const { title, start, end, status } = req.body;
 
   try {
     const event = await prisma.event.findUnique({ where: { id } });
@@ -164,12 +187,17 @@ app.put("/events/:id", async (req, res) => {
     if (event && token) {
       const updatedEvent = await prisma.event.update({
         where: { id },
-        data: { status },
+        data: { title, start, end, status },
         include: { doctor: true, normalUser: true, doctorPosted: true },
       });
       const updatedUser = await getUserFromToken(token as string);
 
-      res.send({ updatedEvent, updatedUser });
+      const updatedDoctor = await prisma.user.findUnique({
+        //@ts-ignore
+        where: { id: event.doctorId },
+        include: { recivedEvents: true, doctorPostedEvents: true },
+      });
+      res.send({ updatedEvent, updatedUser, updatedDoctor });
     } else {
       throw Error(
         "You are not authorized, or Event with this Id doesnt exist!"
